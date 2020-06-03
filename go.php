@@ -81,8 +81,9 @@ if (!isLoggedIn()) {
                             $i++;
                             file_put_contents($status_api, $all_status.';'.$link_insta.';0;instagram');
                             $all_status++;
+                        }else{
+                            $unlink = unlink($file);
                         }
-
                     }
                 }
             }
