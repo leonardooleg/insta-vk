@@ -8,7 +8,7 @@
     <div class="menu-sidebar__content js-scrollbar1">
         <nav class="navbar-sidebar">
             <ul class="list-unstyled navbar__list">
-                <?php include ('menu.php');?>
+                <?php include('menu.php');?>
             </ul>
         </nav>
     </div>

@@ -6,11 +6,11 @@ if (!isLoggedIn()) {
 }
 
 require __DIR__ . '/../vendor/autoload.php';
-include_once ('layout/head.php');
+include_once('layout/head.php');
 
 
-include_once ('views/header_mobile.php');
-include_once ('views/left_menu.php');
+include_once('views/header_mobile.php');
+include_once('views/left_menu.php');
 $index_import = index_import();
 
 ?>
@@ -70,7 +70,7 @@ $index_import = index_import();
     </div>
 <?php
 
-include_once ('layout/footer.php');
+include_once('layout/footer.php');
 
 ?>
         <script type="application/javascript">

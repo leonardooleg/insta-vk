@@ -17,7 +17,7 @@
     <nav class="navbar-mobile">
         <div class="container-fluid">
             <ul class="navbar-mobile__list list-unstyled">
-                <?php include ('menu.php');?>
+                <?php include('menu.php');?>
             </ul>
         </div>
     </nav>

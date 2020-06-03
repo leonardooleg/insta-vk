@@ -1,6 +1,6 @@
 <?php
 include('config/functions.php');
-include_once ('layout/head.php');
+include_once('layout/head.php');
 if (!isLoggedIn()) {
     echo file_get_contents('views/login.html');
 }else{
@@ -12,4 +12,4 @@ if (!isLoggedIn()) {
 }
 
 
-include_once ('layout/footer.php');
+include_once('layout/footer.php');

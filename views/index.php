@@ -1,11 +1,11 @@
 
         <!-- HEADER MOBILE-->
-        <?php  include_once ('header_mobile.php'); ?>
+        <?php  include_once('header_mobile.php'); ?>
         <!-- END HEADER MOBILE-->
 
         <!-- MENU SIDEBAR-->
 
-        <?php  include_once ('left_menu.php'); ?>
+        <?php  include_once('left_menu.php'); ?>
         <!-- END MENU SIDEBAR-->
 
         <!-- PAGE CONTAINER-->

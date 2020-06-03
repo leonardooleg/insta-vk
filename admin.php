@@ -6,7 +6,7 @@ if (!isLoggedIn()) {
 }
 
 
-include_once ('layout/head.php');
+include_once('layout/head.php');
 $admin_stat_insta_1=admin_stat_insta(1);
 $admin_stat_insta_24=admin_stat_insta(24);
 $admin_stat_insta_168=admin_stat_insta(168);
@@ -16,7 +16,7 @@ include_once('views/index.php');
 
 
 
-include_once ('layout/footer.php');
+include_once('layout/footer.php');
 
 
 $sth = $dbh->prepare("SELECT EXTRACT(MONTH FROM `time_added`) as month, EXTRACT(YEAR FROM `time_added`) as year, SUM(`all_count`) as total FROM last_instagram WHERE  YEAR(`time_added`) = YEAR(NOW()) GROUP BY month, year ORDER BY year DESC, month DESC");

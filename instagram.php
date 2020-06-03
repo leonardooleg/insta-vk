@@ -6,11 +6,11 @@ if (!isLoggedIn()) {
 }
 
 require __DIR__ . '/../vendor/autoload.php';
-include_once ('layout/head.php');
+include_once('layout/head.php');
 
 
-  include_once ('views/header_mobile.php');
-  include_once ('views/left_menu.php');
+  include_once('views/header_mobile.php');
+  include_once('views/left_menu.php');
 $index_import = index_import();
   ?>
         <!-- END MENU SIDEBAR-->
@@ -31,6 +31,9 @@ $index_import = index_import();
 
                 <div class="row m-t-30">
                     <div class="col-md-12">
+                        <div class="alert alert-info" role="alert">
+                           Всего не добавленных записей: <?php echo count_instagram(); ?>
+                        </div>
                         <!-- DATA TABLE-->
                         <div class="table-responsive m-b-40">
                             <table class="table table-borderless table-data3">
@@ -70,4 +73,4 @@ $index_import = index_import();
     </div>
 <?php
 
-include_once ('layout/footer.php');
+include_once('layout/footer.php');

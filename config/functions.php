@@ -1,9 +1,12 @@
 <?php
 session_start();
 // connect to database
-
+require __DIR__ . '/../vendor/autoload.php';
+require_once(__DIR__ .'/../getid3/getid3.php'); ///бібліотека для длини відео
 include_once "conf.php";
-
+use Phpfastcache\Helper\Psr16Adapter;
+use InstagramScraper\Instagram;
+Unirest\Request::verifyPeer(false);
 
 $dbh = new PDO("mysql:dbname={$db_table};host={$hostname}", $db_login, $db_pass);
 
@@ -48,12 +51,15 @@ function login(){
 function isLoggedIn()
 {
     global $pas;
-    $password = $_SESSION['login'];
+    if(isset($_SESSION['login'])) $password = $_SESSION['login'];
+
     $pas = md5($pas);
-    if ($password == $pas) {
-        return true;
-    }else{
-        return false;
+    if(isset($password)){
+        if ($password == $pas) {
+            return true;
+        }else{
+            return false;
+        }
     }
 }
 
@@ -94,29 +100,43 @@ function index_import(){
     return $row;
 }
 
+function video_duration($filename){
+    $getID3 = new getID3;
+    $file = $getID3->analyze($filename);
+    $duration=$file['playtime_seconds'];
+    return $duration;
+}
+
 function get_file($url,$id,$name){
-    global $loginpassw;
-    global $proxy_ip ;
-    global $proxy_port;
-
-
+   /* $proxy =get_proxy();
+    $proxy_ip =$proxy[0];
+    $proxy_port=$proxy[1];
+    $proxy_login=$proxy[2];
+    $proxy_pasw=$proxy[3];
+    */
     if (!file_exists('uploads/'.$id)) {
         mkdir('uploads/'.$id, 0777, true);
     }
     $link= 'uploads/'.$id.'/'.$name.'.mp4';
 
+    $timeout = 15;
     $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($ch, CURLOPT_BINARYTRANSFER, true);
-    curl_setopt($ch, CURLOPT_PROXYPORT, $proxy_port);
-    curl_setopt($ch, CURLOPT_PROXYTYPE, 'HTTPS');
-    curl_setopt($ch, CURLOPT_PROXY, $proxy_ip);
-    curl_setopt($ch, CURLOPT_PROXYUSERPWD, $loginpassw);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
+   // curl_setopt($ch, CURLOPT_PROXY, $proxy_ip.':'.$proxy_port );
+   // curl_setopt($ch, CURLOPT_PROXYUSERPWD, $proxy_login.':'.$proxy_pasw);
+   // curl_setopt($ch, CURLOPT_PROXYTYPE, CURLE_SSL_PEER_CERTIFICATE);
     $output = curl_exec($ch);
+    curl_close($ch);
+    if(!$output){
+        echo ' proxxy error ';
+        get_file($url,$id,$name);
+    }
     $fh = fopen($link, 'w');
     fwrite($fh, $output);
     fclose($fh);
-
     return $link;
 }
 
@@ -128,6 +148,7 @@ function last_insta_bd($name){
     return $row;
 }
 
+
 function all_instagram(){
     global $dbh;
     $sth = $dbh->prepare("SELECT * FROM `instagrams`");
@@ -135,7 +156,13 @@ function all_instagram(){
     $results = $sth->fetchAll();
     return $results;
 }
-
+function count_instagram(){
+    global $dbh;
+    $query = "SELECT count(*) as count_insta FROM instagrams ";
+    $stmt = $dbh->query($query);
+    $row =$stmt->fetchObject();
+    return $row->count_insta;
+}
 function del_instagram($id){
     global $dbh;
     $sth = $dbh->prepare("DELETE FROM `instagrams` WHERE id = $id");
@@ -143,5 +170,42 @@ function del_instagram($id){
     $results = $sth->execute();
     return $results;
 }
+function get_proxy(){
+    $lines = file('proxys_166388.txt');
+   $rand_keys = array_rand($lines);
+   $line= str_replace("\n",'',$lines[$rand_keys]);
 
+    $ret= explode(':',$line);
+    return $ret;
+}
+$instagram = Instagram::withCredentials('leonardooleg2', 'rtd4653', new Psr16Adapter('Files'));
+$instagram->login(); // will use cached session if you want to force login $instagram->login(true)
+$instagram->saveSession();  //DO NOT forget this in order to save the session, otherwise have no sense
+function insta_create(){
+    global $instagram;
+    $proxy =get_proxy();
+    $proxy_ip =$proxy[0];
+    $proxy_port=$proxy[1];
+    $proxy_login=$proxy[2];
+    $proxy_pasw=$proxy[3];
+
+
+
+    Instagram::disableProxy();
+    Instagram::setProxy([
+        'address' => $proxy_ip,
+        'port'    => $proxy_port,
+        'tunnel'  => true,
+        'timeout' => 15,
+        'type' => CURLE_SSL_PEER_CERTIFICATE,
+        'auth' => [
+            'user' => $proxy_login,
+            'pass' => $proxy_pasw,
+            'method' => CURLAUTH_BASIC
+        ],
+
+
+    ]);
+
+}
 ?>
