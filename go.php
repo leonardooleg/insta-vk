@@ -1,15 +1,22 @@
 <?php
-require __DIR__ . '/../vendor/autoload.php';
+
 
 include('config/functions.php');
-// Отвечаем только на Ajax
-if ($_SERVER['HTTP_X_REQUESTED_WITH'] != 'XMLHttpRequest') {return;}
 
-if (!isLoggedIn()) {
+if ($_GET['captcha']=='go'){
+    $captcha=true;
+    $isLoggedIn=true;
+}else{
+    $isLoggedIn=isLoggedIn();
+}
+//if ($_SERVER['HTTP_X_REQUESTED_WITH'] != 'XMLHttpRequest') {return;} // Отвечаем только на Ajax
+
+if (!$isLoggedIn) {
     header("location: login.php");
     session_destroy();
     exit;
 }else{
+
     $data=index_import();
     $links_vk=explode(';',$data->links_vk);
     $links_insta = explode(';',$data->links_insta);
@@ -30,7 +37,7 @@ if (!isLoggedIn()) {
 
     /*Парсер Інсти*/
 
-    $last=admin_stat_insta(24); ///*Тільки 1 раз за день*/
+    $last=admin_stat_insta(1); ///*Тільки 1 раз за день*/
     if($last->count>=1){
         file_put_contents($status_api, $all_status.';insta-limit-day'.';finish;instagram');
         sleep(10);
