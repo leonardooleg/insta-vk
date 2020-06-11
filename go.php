@@ -212,12 +212,12 @@ if (!$isLoggedIn) {
                     );
 
                     $add_vk = file_get_contents('https://api.vk.com/method/wall.post?' . http_build_query($params));
-                } else {
+                }
 
 
                     $unlink = unlink($image);
                     $del_instagram = del_instagram($instagram["id"]);
-                }
+
             }
 
             if ($count_day == $count_vk) {
