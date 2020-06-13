@@ -79,7 +79,7 @@ $index_import = index_import();
                                                   </div>
                                                   <div class="col-12 col-md-9">
                                                       <input type="number" id="text-input" name="count_day" <?php if(isset($index_import->links_vk)) echo  'value="'.$index_import->count_day.'"'; ?> placeholder="количество" class="form-control">
-                                                      <small class="form-text text-muted">не больше 50</small>
+                                                      <small class="form-text text-muted">не больше 33</small>
                                                   </div>
                                               </div>
 

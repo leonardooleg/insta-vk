@@ -37,7 +37,7 @@ if (!$isLoggedIn) {
 
     /*Парсер Інсти*/
 
-    $last=admin_stat_insta(1); ///*Тільки 1 раз за день*/
+    $last=admin_stat_insta(2); ///*Тільки 1 раз за день*/
     if($last->count>=1){
         file_put_contents($status_api, $all_status.';insta-limit-day'.';finish;instagram');
         sleep(10);
@@ -152,10 +152,7 @@ if (!$isLoggedIn) {
 
 
     /*Добалятор ВК*/
-    if($last->count>=1){
-        file_put_contents($status_api, $all_status.';vk-limit-day'.';finish;vk');
-        sleep(10);
-    }else {
+
         $all_instagram = all_instagram();
         $count_vk = 1;
         if (!file_exists($status_api)) {
@@ -227,7 +224,7 @@ if (!$isLoggedIn) {
             $count_vk++;
 
         }
-    }
+
     $count_vk=$count_vk-1;
     file_put_contents($status_api, $count_vk.';'.$instagram["post"].'.mp4;finish;vk');
 
