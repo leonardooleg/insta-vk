@@ -51,7 +51,7 @@ $index_import = index_import();
                                $all_instagram =all_instagram();
                                 foreach ($all_instagram as $result){
                                     echo ' <tr>';
-                                    echo '<td><a href="https://www.instagram.com/'.$result["group_name"].'/" target="_blank" >'.$result["group_name"].'</a></td><td><a href="https://www.instagram.com/p/'.$result["post"].'/" target="_blank" >'.$result["post"].'</a></td><td>'.$result["likes"].'</td><td>'.$result["views"].'</td><td>'.round($result["views"]/$result["likes"]).'</td>';
+                                    echo '<td><a href="https://www.instagram.com/'.$result["group_name"].'/" target="_blank" >'.$result["group_name"].'</a></td><td><a href="https://www.instagram.com/p/'.$result["post"].'/" target="_blank" >'.$result["post"].'</a></td><td>'.$result["likes"].'</td><td>'.$result["views"].'</td><td>'.round($result["likes"]/$result["views"], 2).'</td>';
                                     echo ' </tr>';
                                 }
                                 ?>

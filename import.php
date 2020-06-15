@@ -70,7 +70,7 @@ $index_import = index_import();
                                                   </div>
                                                   <div class="col-12 col-md-9">
                                                       <input type="text" id="text-input" name="crt" <?php if(isset($index_import->links_vk)) echo  'value="'.$index_import->crt.'"'; ?> placeholder="Text" class="form-control">
-                                                      <small class="form-text text-muted">рейтинг лайки / на просмотры</small>
+                                                      <small class="form-text text-muted">например 0.5, максимум 1 ( рейтинг лайки / просмотры) </small>
                                                   </div>
                                               </div>
                                               <div class="row form-group">

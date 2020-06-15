@@ -22,7 +22,7 @@ if (!isLoggedIn()) {
     $stmt->bindParam(':links_vk', $links_vk, PDO::PARAM_STR);
     $stmt->bindParam(':status', $status, PDO::PARAM_INT);
     $stmt->bindParam(':count_day', $count_day, PDO::PARAM_INT);
-    $stmt->bindParam(':crt', $crt, PDO::PARAM_INT);
+    $stmt->bindParam(':crt', $crt, PDO::PARAM_STR);
     $stmt->bindParam(':id', $id, PDO::PARAM_INT);
     $stmt->execute();
 

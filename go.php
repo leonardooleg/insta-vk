@@ -73,7 +73,7 @@ if (!$isLoggedIn) {
                     }
                     $likes = $post['likesCount'];
                     $views = $post['videoViews'];
-                    $crt = $views / $likes;
+                    $crt = $likes / $views  ;
                     if ($crt >= $min_crt->crt) {
                         $file = get_file($post['videoStandardResolutionUrl'], $post['owner']['id'], $post['shortCode']);
                         $video_duration = video_duration($file);
