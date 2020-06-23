@@ -19,7 +19,7 @@ include_once('views/index.php');
 include_once('layout/footer.php');
 
 
-$sth = $dbh->prepare("SELECT EXTRACT(MONTH FROM `time_added`) as month, EXTRACT(YEAR FROM `time_added`) as year, SUM(`all_count`) as total FROM last_instagram WHERE  YEAR(`time_added`) = YEAR(NOW()) GROUP BY month, year ORDER BY year DESC, month DESC");
+$sth = $dbh->prepare("SELECT EXTRACT(MONTH FROM `time_added`) as month, EXTRACT(YEAR FROM `time_added`) as year,  COUNT(*) as total FROM instagrams WHERE  YEAR(`time_added`) = YEAR(NOW()) GROUP BY month, year ORDER BY year DESC, month DESC");
 $sth->execute();
 $stata = $sth->fetchAll();
 $stata_rev = array_reverse($stata);

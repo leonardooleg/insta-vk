@@ -12,7 +12,11 @@
         Запустить парсер</a>
 </li>
 <li>
-    <a href="/instagram.php">
+    <a href="/instagram.php?time=all">
         <i class="zmdi zmdi-format-align-justify"></i>Не добавленные записи</a>
+</li>
+<li>
+    <a href="/instagram.php?time=old">
+        <i class="zmdi zmdi-format-align-justify"></i>Все записи</a>
 </li>
 

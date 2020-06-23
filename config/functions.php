@@ -108,12 +108,13 @@ function video_duration($filename){
 }
 
 function get_file($url,$id,$name){
-   /* $proxy =get_proxy();
-    $proxy_ip =$proxy[0];
-    $proxy_port=$proxy[1];
-    $proxy_login=$proxy[2];
-    $proxy_pasw=$proxy[3];
-    */
+    /* $proxy =get_proxy();
+     $proxy_ip =$proxy[0];
+     $proxy_port=$proxy[1];
+     $proxy_login=$proxy[2];
+     $proxy_pasw=$proxy[3];
+ */
+
     if (!file_exists('uploads/'.$id)) {
         mkdir('uploads/'.$id, 0777, true);
     }
@@ -125,18 +126,22 @@ function get_file($url,$id,$name){
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($ch, CURLOPT_BINARYTRANSFER, true);
     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
-   // curl_setopt($ch, CURLOPT_PROXY, $proxy_ip.':'.$proxy_port );
-   // curl_setopt($ch, CURLOPT_PROXYUSERPWD, $proxy_login.':'.$proxy_pasw);
-   // curl_setopt($ch, CURLOPT_PROXYTYPE, CURLE_SSL_PEER_CERTIFICATE);
+//curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+//curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+    // curl_setopt($ch, CURLOPT_PROXY, $proxy_ip.':'.$proxy_port );
+
+    // curl_setopt($ch, CURLOPT_PROXYUSERPWD, $proxy_login.':'.$proxy_pasw);
+    // curl_setopt($ch, CURLOPT_PROXYTYPE, CURLE_SSL_PEER_CERTIFICATE);
     $output = curl_exec($ch);
     curl_close($ch);
     if(!$output){
-        echo ' proxxy error ';
-        get_file($url,$id,$name);
+        echo 'proxxy error';
+        //get_file($url,$id,$name);
     }
     $fh = fopen($link, 'w');
     fwrite($fh, $output);
     fclose($fh);
+
     return $link;
 }
 
@@ -148,15 +153,35 @@ function last_insta_bd($name){
     return $row;
 }
 
-
+function old_instagram(){
+    global $dbh;
+    $sth = $dbh->prepare("SELECT * FROM `instagrams` ");
+    $sth->execute();
+    $results = $sth->fetchAll();
+    return $results;
+}
 function all_instagram(){
     global $dbh;
-    $sth = $dbh->prepare("SELECT * FROM `instagrams`");
+    $sth = $dbh->prepare("SELECT * FROM `instagrams` WHERE `status` = 1 ");
+    $sth->execute();
+    $results = $sth->fetchAll();
+    return $results;
+}
+function priority_all_instagram($limit){
+    global $dbh;
+    $sth = $dbh->prepare("SELECT * FROM `instagrams` WHERE `status` = 1 ORDER BY ctr DESC LIMIT $limit");
     $sth->execute();
     $results = $sth->fetchAll();
     return $results;
 }
 function count_instagram(){
+    global $dbh;
+    $query = "SELECT count(*) as count_insta FROM instagrams  WHERE `status` = 1";
+    $stmt = $dbh->query($query);
+    $row =$stmt->fetchObject();
+    return $row->count_insta;
+}
+function all_count_instagram(){
     global $dbh;
     $query = "SELECT count(*) as count_insta FROM instagrams ";
     $stmt = $dbh->query($query);
@@ -165,29 +190,36 @@ function count_instagram(){
 }
 function del_instagram($id){
     global $dbh;
-    $sth = $dbh->prepare("DELETE FROM `instagrams` WHERE id = $id");
-    $sth->execute();
-    $results = $sth->execute();
+    $status =2;
+    $posting = date('Y-m-d H:i:s');
+    $sql = "UPDATE instagrams SET status=:status, posting=:posting WHERE id=:id";
+    $stmt = $dbh->prepare($sql);
+    $stmt->bindParam(':status', $status, PDO::PARAM_INT);
+    $stmt->bindParam(':posting', $posting, PDO::PARAM_STR);
+    $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+    $results =  $stmt->execute();
+
     return $results;
 }
 function get_proxy(){
-    $lines = file('proxys_166388.txt');
-   $rand_keys = array_rand($lines);
-   $line= str_replace("\n",'',$lines[$rand_keys]);
+    $lines = file('proxy.txt');
+    // $lines = file('proxys_166388.txt');
+    $rand_keys = array_rand($lines);
+    $line= str_replace("\n",'',$lines[$rand_keys]);
 
     $ret= explode(':',$line);
     return $ret;
 }
-$instagram = Instagram::withCredentials('leonardooleg2', 'rtd4653', new Psr16Adapter('Files'));
+//$instagram = Instagram::withCredentials('leonardooleg2', 'rtd4653', new Psr16Adapter('Files'));
+$instagram = Instagram::withCredentials('leonardooleg3', 'rtd465321', new Psr16Adapter('Files'));
 $instagram->login(); // will use cached session if you want to force login $instagram->login(true)
 $instagram->saveSession();  //DO NOT forget this in order to save the session, otherwise have no sense
 function insta_create(){
-    global $instagram;
     $proxy =get_proxy();
     $proxy_ip =$proxy[0];
     $proxy_port=$proxy[1];
     $proxy_login=$proxy[2];
-    $proxy_pasw=$proxy[3];
+    $proxy_pasw=str_replace("\r",'', $proxy[3]);
 
 
 
@@ -196,8 +228,8 @@ function insta_create(){
         'address' => $proxy_ip,
         'port'    => $proxy_port,
         'tunnel'  => true,
-        'timeout' => 15,
-        'type' => CURLE_SSL_PEER_CERTIFICATE,
+        'timeout' => 25,
+        'type' => CURLPROXY_SOCKS5_HOSTNAME,
         'auth' => [
             'user' => $proxy_login,
             'pass' => $proxy_pasw,
@@ -205,7 +237,57 @@ function insta_create(){
         ],
 
 
+
     ]);
 
+}
+
+function vk_insert($instagram,$group_id,$count_vk,$need_time){
+    global $access_token ;
+    $image = realpath(__DIR__ . '/..') .'/uploads/' . $instagram["group_id"] . '/' . $instagram["post"] . '.mp4';
+
+    // Получение сервера vk для загрузки изображения.
+    $server = file_get_contents('https://api.vk.com/method/video.save?group_id=' . $group_id . '&access_token=' . $access_token . '&v=5.107');
+    $server = json_decode($server);
+
+    if ($server->error->error_msg == 'Access to adding post denied: you can only add 50 posts a day') {
+        return false;
+    }
+
+    if (!empty($server->response->upload_url)) {
+        // Отправка изображения на сервер.
+        if (function_exists('curl_file_create')) {
+            $curl_file = curl_file_create($image);
+        } else {
+            $curl_file = '@' . $image;
+        }
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $server->response->upload_url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, array('video_file' => $curl_file));
+        $upload = curl_exec($ch);
+        curl_close($ch);
+
+        $upload = json_decode($upload);
+        if ($upload->video_hash) {
+            // Отправляем сообщение.
+            $params = array(
+                'v' => '5.107',
+                'access_token' => $access_token,
+                'owner_id' => '-' . $group_id,
+                'from_group' => '1',
+                'publish_date' => $need_time[$count_vk - 1],
+                'attachments' => 'video' . $upload->owner_id . '_' . $upload->video_id
+            );
+
+            $add_vk = file_get_contents('https://api.vk.com/method/wall.post?' . http_build_query($params));
+        }
+
+        $unlink = unlink($image);
+        $del_instagram = del_instagram($instagram["id"]);
+        return true;
+    }
 }
 ?>

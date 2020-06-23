@@ -2,7 +2,6 @@
 
 
 include('config/functions.php');
-
 if ($_GET['captcha']=='go'){
     $captcha=true;
     $isLoggedIn=true;
@@ -20,8 +19,10 @@ if (!$isLoggedIn) {
     $data=index_import();
     $links_vk=explode(';',$data->links_vk);
     $links_insta = explode(';',$data->links_insta);
+    shuffle($links_insta); //перемішати масив
     $count_insta=count($links_insta);
     $count_day =$data->count_day;
+    $priority_count_day =$data->priority_count_day;
 
     /*Для статуса*/
     $status_api='go_status.txt';
@@ -37,15 +38,17 @@ if (!$isLoggedIn) {
 
     /*Парсер Інсти*/
 
-    $last=admin_stat_insta(2); ///*Тільки 1 раз за день*/
+    $last=admin_stat_insta(5); ///*Тільки 1 раз за день*/
     if($last->count>=1){
         file_put_contents($status_api, $all_status.';insta-limit-day'.';finish;instagram');
         sleep(10);
     }else{
         insta_create();
-        $min_crt =index_import();
+        $set_pars =index_import();
+        $min_crt =$set_pars->crt;
+        $max_crt =$set_pars->max_crt;
         // Request with proxy
-
+        $insta_limit_day=1;
         foreach ($links_insta as $link_insta) {
             $i=0;
             $insta_name = str_replace("https://www.instagram.com/", "", $link_insta);
@@ -57,6 +60,7 @@ if (!$isLoggedIn) {
 
             $last_insta_bd =last_insta_bd($insta_name);
             if ($last_insta_bd->post == $posts[0]['shortCode'] ){
+                file_put_contents($status_api, $all_status.';continue-'.$posts[0]['shortCode'].';continue;instagram');
                 continue;
             }
             // PDO error mode is set to exception
@@ -69,19 +73,21 @@ if (!$isLoggedIn) {
                 if ($post['type'] == 'video') {
                     $shortCode = $post['shortCode'];
                     if ($last_insta_bd->post == $shortCode ){
+                        file_put_contents($status_api, $all_status.';continue-'.$shortCode.';break;instagram');
                         break ; //ящо вже існує останній в базі
                     }
                     $likes = $post['likesCount'];
                     $views = $post['videoViews'];
-                    $crt = $likes / $views  ;
-                    if ($crt >= $min_crt->crt) {
+                    $crt = round($likes / $views,2)  ;
+                    if ($crt >= $min_crt and $crt <= $max_crt) {
                         $file = get_file($post['videoStandardResolutionUrl'], $post['owner']['id'], $post['shortCode']);
                         $video_duration = video_duration($file);
                         if ($video_duration<51){
+                            $time_added = date('Y-m-d H:i:s');
                             $group_id = $post['owner']['id'];
                             $group_name = $post['owner']['username'];
                             $file_id = $post['id'];
-                            $n=$dbh->exec("INSERT INTO instagrams (group_name, group_id, post, likes, views, file_id) VALUES ('$group_name', '$group_id', '$shortCode', '$likes', '$views', '$file_id')");
+                            $n=$dbh->exec("INSERT INTO instagrams (group_name, group_id, post, likes, views, ctr, file_id, status, time_added) VALUES ('$group_name', '$group_id', '$shortCode', '$likes', '$views', '$crt', '$file_id', 1, '$time_added')");
                             if($i===0){
                                 $last_pars=$shortCode;
                             }
@@ -125,19 +131,20 @@ if (!$isLoggedIn) {
             }
             /*Зберігаємо ласт*/
             sleep(5);
-
+            if($insta_limit_day==$insta_limit) break;
+            $insta_limit_day++;
         }
 
     }
 
-   /*Парсер Інсти*/
+    /*Парсер Інсти*/
 
     $all_status=$all_status-1;
     file_put_contents($status_api, $all_status.';'.$link_insta.';finish;instagram');
 
 
 
-/*Часовий інтервал*/
+    /*Часовий інтервал*/
     $d = strtotime("+1 day");
     $date= date("Y-m-d ", $d);
 
@@ -148,82 +155,73 @@ if (!$isLoggedIn) {
         $a += 30;
 
     }
-/*Часовий інтервал*/
+    /*Часовий інтервал*/
+    /*Часовий інтервал прыорытетний*/
+
+
+    for($ip = 0, $ap = 30; $ip < 23; $ip++){
+        $bp= $date.date("H:i", strtotime("today 1 hours 03 minutes + $ap minutes")).':37.623812';
+        $priority_need_time[]= strtotime($bp);
+        //echo strtotime($b).'<br>';
+        $ap += 60;
+
+    }
+    /*Часовий інтервал пріоритетний*/
 
 
     /*Добалятор ВК*/
 
-        $all_instagram = all_instagram();
-        $count_vk = 1;
-        if (!file_exists($status_api)) {
-            $fp = fopen($status_api, 'a');
-            fwrite($fp, '0');
-            fclose($fp);
-        } else {
-            file_put_contents($status_api, '0;0;0;vk');
-        }
-        foreach ($all_instagram as $instagram) {
+    $count_vk = 1;
 
-            $group_id = array_rand($links_vk);
-            $group_id = $links_vk[$group_id];
-            $access_token = '7877701cb9373cfb663a1daa81167e832454887b315565d0e5db849f824c9ddc97ad4aa77337d159cc91f';
-            //$message      = 'Hello, world!2';
+    if (!file_exists($status_api)) {
+        $fp = fopen($status_api, 'a');
+        fwrite($fp, '0');
+        fclose($fp);
+    } else {
+        file_put_contents($status_api, '0;0;0;vk');
+    }
 
+    ///Добалятор приоритетных ВК
+    $priority_all_instagram = priority_all_instagram($priority_count_day);
 
-            $image = __DIR__ . '/uploads/' . $instagram["group_id"] . '/' . $instagram["post"] . '.mp4';
-
-            // Получение сервера vk для загрузки изображения.
-            $server = file_get_contents('https://api.vk.com/method/video.save?group_id=' . $group_id . '&access_token=' . $access_token . '&v=5.107');
-            $server = json_decode($server);
-
-            if ($server->error->error_msg == 'Access to adding post denied: you can only add 50 posts a day') {
-                break;
-            }
-
-            if (!empty($server->response->upload_url)) {
-                // Отправка изображения на сервер.
-                if (function_exists('curl_file_create')) {
-                    $curl_file = curl_file_create($image);
-                } else {
-                    $curl_file = '@' . $image;
+    $priority_links_vk=explode(';',$data->priority_links_vk);
+    if ($priority_links_vk[0]!=''){
+        foreach ($priority_links_vk as $priority_link_vk) {
+            foreach ($priority_all_instagram as $priority_instagram) {
+                $vk_insert = vk_insert($priority_instagram, $priority_link_vk, $count_vk, $priority_need_time);//////
+                if ($vk_insert == false) {
+                    break;
                 }
-
-                $ch = curl_init();
-                curl_setopt($ch, CURLOPT_URL, $server->response->upload_url);
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-                curl_setopt($ch, CURLOPT_POST, 1);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, array('video_file' => $curl_file));
-                $upload = curl_exec($ch);
-                curl_close($ch);
-
-                $upload = json_decode($upload);
-                if ($upload->video_hash) {
-                    // Отправляем сообщение.
-                    $params = array(
-                        'v' => '5.107',
-                        'access_token' => $access_token,
-                        'owner_id' => '-' . $group_id,
-                        'from_group' => '1',
-                        'publish_date' => $need_time[$count_vk - 1],
-                        'attachments' => 'video' . $upload->owner_id . '_' . $upload->video_id
-                    );
-
-                    $add_vk = file_get_contents('https://api.vk.com/method/wall.post?' . http_build_query($params));
+                if ($count_day == $count_vk) {
+                    break;
                 }
-
-
-                    $unlink = unlink($image);
-                    $del_instagram = del_instagram($instagram["id"]);
+                file_put_contents($status_api, $count_vk . ';priority-' . $priority_instagram["post"] . '.mp4;0;vk');
+                $count_vk++;
 
             }
-
-            if ($count_day == $count_vk) {
-                break;
-            }
-            file_put_contents($status_api, $count_vk . ';' . $instagram["post"] . '.mp4;0;vk');
-            $count_vk++;
-
         }
+    }
+
+    ///Добалятор звичайних ВК
+
+    $all_instagram = all_instagram();
+    foreach ($all_instagram as $instagram) {
+        $group_id = array_rand($links_vk);
+        $group_id = $links_vk[$group_id];
+
+        $vk_insert = vk_insert($instagram,$group_id,$count_vk,$need_time); ///////
+
+        if (!$vk_insert) {
+            break;
+        }
+
+        if ($count_day == $count_vk) {
+            break;
+        }
+        file_put_contents($status_api, $count_vk . ';' . $instagram["post"] . '.mp4;0;vk');
+        $count_vk++;
+
+    }
 
     $count_vk=$count_vk-1;
     file_put_contents($status_api, $count_vk.';'.$instagram["post"].'.mp4;finish;vk');
@@ -233,7 +231,7 @@ if (!$isLoggedIn) {
     /*Добалятор ВК*/
 
 
-   /* header("location: import.php");*/
+    /* header("location: import.php");*/
 
 
 
@@ -246,5 +244,10 @@ if (!$isLoggedIn) {
 
 
 }
+
+
+
+
+
 
 

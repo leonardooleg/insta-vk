@@ -13,7 +13,7 @@
                             <div class="account-dropdown js-dropdown">
 
                                 <div class="account-dropdown__footer">
-                                    <a href="/admin.php?logout">
+                                    <a href="admin.php?logout">
                                         <i class="zmdi zmdi-power"></i>Выход</a>
                                 </div>
                             </div>

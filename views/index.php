@@ -120,6 +120,64 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <h2 class="title-1 m-b-25 ">Топ 10 видео недели</h2>
+                                <div class="table-responsive table--no-card m-b-40">
+                                    <table class="table table-borderless table-striped table-earning ">
+                                        <thead class="">
+                                        <tr  class="bg-primary">
+                                            <th  class="bg-primary">Группа</th>
+                                            <th  class="bg-primary">Видео</th>
+                                            <th  class="bg-primary">CTR</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <?php
+                                        global $dbh;
+                                        $week_sth = $dbh->prepare("SELECT * FROM `instagrams` WHERE posting >= DATE_SUB(NOW() , INTERVAL 168 HOUR) ORDER BY ctr DESC LIMIT 10");
+                                        $week_sth->execute();
+                                        $week_results = $week_sth->fetchAll();
+                                        foreach ($week_results as $week_result){
+                                            echo ' <tr>';
+                                            echo '<td><a href="https://www.instagram.com/'.$week_result["group_name"].'/" target="_blank">'.$week_result["group_name"].'</a></td><td><a href="https://www.instagram.com/p/'.$week_result["post"].'/" target="_blank">'.$week_result["post"].'</a></td><td>'.$week_result["ctr"].'</td>';
+                                            echo ' </tr>';
+                                        }
+                                        ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <h2 class="title-1 m-b-25">Топ 10 видео месяца</h2>
+                                <div class="table-responsive table--no-card m-b-40">
+                                    <table class="table table-borderless table-striped table-earning">
+                                        <thead>
+                                        <tr>
+                                            <th class="bg-success">Группа</th>
+                                            <th class="bg-success" >Видео</th>
+                                            <th class="bg-success">CTR</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <?php
+                                        global $dbh;
+                                        $month_sth = $dbh->prepare("SELECT * FROM `instagrams` WHERE posting >= DATE_SUB(CURRENT_DATE, INTERVAL 30 DAY) ORDER BY ctr DESC LIMIT 10");
+                                        $month_sth->execute();
+                                        $month_results = $month_sth->fetchAll();
+                                        foreach ($month_results as $month_result){
+                                            echo ' <tr>';
+                                            echo '<td><a href="https://www.instagram.com/'.$month_result["group_name"].'/" target="_blank">'.$month_result["group_name"].'</a></td><td><a href="https://www.instagram.com/p/'.$month_result["post"].'/" target="_blank">'.$month_result["post"].'</a></td><td>'.$month_result["ctr"].'</td>';
+                                            echo ' </tr>';
+                                        }
+                                        ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="row">
                             <div class="col-lg-9">
                                 <h2 class="title-1 m-b-25">Последние 10 групп</h2>
@@ -130,7 +188,7 @@
 
                                                 <th>Группа</th>
                                                 <th >За последний проход</th>
-                                                <th ">Всего</th>
+                                                <th >Всего</th>
                                                 <th>Когда в последний раз</th>
                                             </tr>
                                         </thead>
@@ -178,7 +236,7 @@
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="copyright">
-                                    <p>Copyright © 2018 Colorlib. All rights reserved. Template by Colorlib.</p>
+                                    <p>Copyright © 2020</p>
                                 </div>
                             </div>
                         </div>
